@@ -4,12 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
-
-import androidx.annotation.NonNull;
-import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
-import androidx.customview.widget.ViewDragHelper;
-
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -23,17 +17,19 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.customview.widget.ViewDragHelper;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SwipeLayout extends FrameLayout {
-    @Deprecated
-    public static final int EMPTY_LAYOUT = -1;
     private static final int DRAG_LEFT = 1;
     private static final int DRAG_RIGHT = 2;
     private static final int DRAG_TOP = 4;
@@ -147,7 +143,7 @@ public class SwipeLayout extends FrameLayout {
          * Called in onInterceptTouchEvent Determines if this swipe event should
          * be denied Implement this interface if you are using views with swipe
          * gestures As a child of SwipeLayout
-         * 
+         *
          * @return true deny false allow
          */
         boolean shouldDenySwipe(MotionEvent ev);
@@ -224,7 +220,7 @@ public class SwipeLayout extends FrameLayout {
     private ViewDragHelper.Callback mDragHelperCallback = new ViewDragHelper.Callback() {
 
         @Override
-        public int clampViewPositionHorizontal(View child, int left, int dx) {
+        public int clampViewPositionHorizontal(@NonNull View child, int left, int dx) {
             if (child == getSurfaceView()) {
                 switch (mCurrentDragEdge) {
                     case Top:
@@ -265,7 +261,7 @@ public class SwipeLayout extends FrameLayout {
         }
 
         @Override
-        public int clampViewPositionVertical(View child, int top, int dy) {
+        public int clampViewPositionVertical(@NonNull View child, int top, int dy) {
             if (child == getSurfaceView()) {
                 switch (mCurrentDragEdge) {
                     case Left:

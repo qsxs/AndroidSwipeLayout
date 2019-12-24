@@ -2,10 +2,12 @@
 <resources>
     <declare-styleable name="SwipeLayout">
         <attr name="drag_edge">
-            <flag name="left" value="1" />
+            <flag name="start" value="1" />
             <flag name="right" value="2" />
             <flag name="top" value="4" />
             <flag name="bottom" value="8" />
+<!--            <flag name="start" value="11" />-->
+<!--            <flag name="end" value="12" />-->
         </attr>
         <attr name="leftEdgeSwipeOffset" format="dimension" />
         <attr name="rightEdgeSwipeOffset" format="dimension" />

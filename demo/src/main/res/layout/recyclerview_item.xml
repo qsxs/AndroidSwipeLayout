@@ -60,7 +60,7 @@
                 tools:text="杀杀杀杀杀"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:tag="Hover"/>
+                android:tag="Hover" />
         </LinearLayout>
     </com.daimajia.swipe.SwipeLayout>
 </LinearLayout>
