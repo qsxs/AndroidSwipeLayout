@@ -1,7 +1,6 @@
 package com.daimajia.swipedemo.adapter;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
@@ -81,13 +82,14 @@ public class RecyclerViewAdapter extends RecyclerSwipeAdapter<RecyclerViewAdapte
             public void onClick(View view) {
                 mItemManger.removeShownLayouts(viewHolder.swipeLayout);
                 mDataset.remove(position);
-                notifyItemRemoved(position);
-                notifyItemRangeChanged(position, mDataset.size());
+//                notifyItemRemoved(position);
+                notifyDatasetChanged();
+//                notifyItemRangeChanged(position, mDataset.size());
                 mItemManger.closeAllItems();
                 Toast.makeText(view.getContext(), "Deleted " + viewHolder.textViewData.getText().toString() + "!", Toast.LENGTH_SHORT).show();
             }
         });
-        viewHolder.textViewPos.setText((position + 1) + ".");
+//        viewHolder.textViewPos.setText((position + 1) + ".");
         viewHolder.textViewData.setText(item);
         mItemManger.bind(viewHolder.itemView, position);
     }

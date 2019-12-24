@@ -23,6 +23,7 @@
         <activity android:name="com.daimajia.swipedemo.GridViewExample" />
         <activity android:name="com.daimajia.swipedemo.RecyclerViewExample" />
         <activity android:name=".NestedExample" />
+        <activity android:name=".RecyclerViewV2Example" />
     </application>
 
 </manifest>

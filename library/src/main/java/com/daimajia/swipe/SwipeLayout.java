@@ -1,11 +1,15 @@
 package com.daimajia.swipe;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.widget.ViewDragHelper;
+
+import androidx.annotation.NonNull;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.customview.widget.ViewDragHelper;
+
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -313,7 +317,7 @@ public class SwipeLayout extends FrameLayout {
         }
 
         @Override
-        public boolean tryCaptureView(View child, int pointerId) {
+        public boolean tryCaptureView(@NonNull View child, int pointerId) {
             boolean result = child == getSurfaceView() || getBottomViews().contains(child);
             if (result) {
                 isCloseBeforeDrag = getOpenStatus() == Status.Close;
@@ -322,19 +326,19 @@ public class SwipeLayout extends FrameLayout {
         }
 
         @Override
-        public int getViewHorizontalDragRange(View child) {
+        public int getViewHorizontalDragRange(@NonNull View child) {
             return mDragDistance;
         }
 
         @Override
-        public int getViewVerticalDragRange(View child) {
+        public int getViewVerticalDragRange(@NonNull View child) {
             return mDragDistance;
         }
 
         boolean isCloseBeforeDrag = true;
 
         @Override
-        public void onViewReleased(View releasedChild, float xvel, float yvel) {
+        public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
             processHandRelease(xvel, yvel, isCloseBeforeDrag);
             for (SwipeListener l : mSwipeListeners) {
@@ -345,7 +349,7 @@ public class SwipeLayout extends FrameLayout {
         }
 
         @Override
-        public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
+        public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
             View surfaceView = getSurfaceView();
             if (surfaceView == null) return;
             View currentBottomView = getCurrentBottomView();
@@ -953,6 +957,7 @@ public class SwipeLayout extends FrameLayout {
 
     private float sX = -1, sY = -1;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!isSwipeEnabled()) return super.onTouchEvent(event);
@@ -1557,19 +1562,6 @@ public class SwipeLayout extends FrameLayout {
         return (int) (dp * getContext().getResources().getDisplayMetrics().density + 0.5f);
     }
 
-
-    /**
-     * Deprecated, use {@link #setDrag(DragEdge, View)}
-     */
-    @Deprecated
-    public void setDragEdge(DragEdge dragEdge) {
-        clearDragEdge();
-        if (getChildCount() >= 2) {
-            mDragEdges.put(dragEdge, getChildAt(getChildCount() - 2));
-        }
-        setCurrentDragEdge(dragEdge);
-    }
-
     public void onViewRemoved(View child) {
         for (Map.Entry<DragEdge, View> entry : new HashMap<DragEdge, View>(mDragEdges).entrySet()) {
             if (entry.getValue() == child) {
@@ -1580,53 +1572,6 @@ public class SwipeLayout extends FrameLayout {
 
     public Map<DragEdge, View> getDragEdgeMap() {
         return mDragEdges;
-    }
-
-    /**
-     * Deprecated, use {@link #getDragEdgeMap()}
-     */
-    @Deprecated
-    public List<DragEdge> getDragEdges() {
-        return new ArrayList<DragEdge>(mDragEdges.keySet());
-    }
-
-    /**
-     * Deprecated, use {@link #setDrag(DragEdge, View)}
-     */
-    @Deprecated
-    public void setDragEdges(List<DragEdge> dragEdges) {
-        clearDragEdge();
-        for (int i = 0, size = Math.min(dragEdges.size(), getChildCount() - 1); i < size; i++) {
-            DragEdge dragEdge = dragEdges.get(i);
-            mDragEdges.put(dragEdge, getChildAt(i));
-        }
-        if (dragEdges.size() == 0 || dragEdges.contains(DefaultDragEdge)) {
-            setCurrentDragEdge(DefaultDragEdge);
-        } else {
-            setCurrentDragEdge(dragEdges.get(0));
-        }
-    }
-
-    /**
-     * Deprecated, use {@link #addDrag(DragEdge, View)}
-     */
-    @Deprecated
-    public void setDragEdges(DragEdge... mDragEdges) {
-        clearDragEdge();
-        setDragEdges(Arrays.asList(mDragEdges));
-    }
-
-    /**
-     * Deprecated, use {@link #addDrag(DragEdge, View)}
-     * When using multiple drag edges it's a good idea to pass the ids of the views that
-     * you're using for the left, right, top bottom views (-1 if you're not using a particular view)
-     */
-    @Deprecated
-    public void setBottomViewIds(int leftId, int rightId, int topId, int bottomId) {
-        addDrag(DragEdge.Left, findViewById(leftId));
-        addDrag(DragEdge.Right, findViewById(rightId));
-        addDrag(DragEdge.Top, findViewById(topId));
-        addDrag(DragEdge.Bottom, findViewById(bottomId));
     }
 
     private float getCurrentOffset() {

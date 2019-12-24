@@ -182,7 +182,7 @@ public class MyActivity extends Activity {
             startActivity(new Intent(this, NestedExample.class));
             return true;
         } else if (id == R.id.action_recycler) {
-            startActivity(new Intent(this, RecyclerViewExample.class));
+            startActivity(new Intent(this, RecyclerViewV2Example.class));
         }
         return super.onOptionsItemSelected(item);
     }
