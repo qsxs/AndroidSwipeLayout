@@ -30,10 +30,12 @@ import java.util.List;
 import java.util.Map;
 
 public class SwipeLayout extends FrameLayout {
-    private static final int DRAG_LEFT = 1;
-    private static final int DRAG_RIGHT = 2;
-    private static final int DRAG_TOP = 4;
-    private static final int DRAG_BOTTOM = 8;
+    private static final int DRAG_LEFT = 11;
+    private static final int DRAG_RIGHT = 21;
+    private static final int DRAG_TOP = 41;
+    private static final int DRAG_BOTTOM = 81;
+    private static final int DRAG_START = 12;
+    private static final int DRAG_END = 22;
     private static final DragEdge DefaultDragEdge = DragEdge.Right;
 
     private int mTouchSlop;
@@ -85,29 +87,45 @@ public class SwipeLayout extends FrameLayout {
         super(context, attrs, defStyle);
         mDragHelper = ViewDragHelper.create(this, mDragHelperCallback);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-
+        ViewCompat.setLayoutDirection(this, ViewCompat.LAYOUT_DIRECTION_LOCALE);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SwipeLayout);
         int dragEdgeChoices = a.getInt(R.styleable.SwipeLayout_drag_edge, DRAG_RIGHT);
-        mEdgeSwipesOffset[DragEdge.Left.ordinal()] = a.getDimension(R.styleable.SwipeLayout_leftEdgeSwipeOffset, 0);
-        mEdgeSwipesOffset[DragEdge.Right.ordinal()] = a.getDimension(R.styleable.SwipeLayout_rightEdgeSwipeOffset, 0);
-        mEdgeSwipesOffset[DragEdge.Top.ordinal()] = a.getDimension(R.styleable.SwipeLayout_topEdgeSwipeOffset, 0);
-        mEdgeSwipesOffset[DragEdge.Bottom.ordinal()] = a.getDimension(R.styleable.SwipeLayout_bottomEdgeSwipeOffset, 0);
-        setClickToClose(a.getBoolean(R.styleable.SwipeLayout_clickToClose, mClickToClose));
 
-        if ((dragEdgeChoices & DRAG_LEFT) == DRAG_LEFT) {
-            mDragEdges.put(DragEdge.Left, null);
-        }
         if ((dragEdgeChoices & DRAG_TOP) == DRAG_TOP) {
             mDragEdges.put(DragEdge.Top, null);
-        }
-        if ((dragEdgeChoices & DRAG_RIGHT) == DRAG_RIGHT) {
-            mDragEdges.put(DragEdge.Right, null);
-        }
-        if ((dragEdgeChoices & DRAG_BOTTOM) == DRAG_BOTTOM) {
+        } else if ((dragEdgeChoices & DRAG_BOTTOM) == DRAG_BOTTOM) {
             mDragEdges.put(DragEdge.Bottom, null);
         }
+        if (ViewCompat.getLayoutDirection(this) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+            if ((dragEdgeChoices & DRAG_START) == DRAG_START || (dragEdgeChoices & DRAG_LEFT) == DRAG_LEFT) {
+                mDragEdges.put(DragEdge.Left, null);
+            }
+            if ((dragEdgeChoices & DRAG_END) == DRAG_END || (dragEdgeChoices & DRAG_RIGHT) == DRAG_RIGHT) {
+                mDragEdges.put(DragEdge.Right, null);
+            }
+            mEdgeSwipesOffset[DragEdge.Left.ordinal()] = a.getDimension(R.styleable.SwipeLayout_startEdgeSwipeOffset, 0);
+            mEdgeSwipesOffset[DragEdge.Right.ordinal()] = a.getDimension(R.styleable.SwipeLayout_endEdgeSwipeOffset, 0);
+        } else {
+            if ((dragEdgeChoices & DRAG_END) == DRAG_END || (dragEdgeChoices & DRAG_LEFT) == DRAG_LEFT) {
+                mDragEdges.put(DragEdge.Left, null);
+            }
+            if ((dragEdgeChoices & DRAG_START) == DRAG_START || (dragEdgeChoices & DRAG_RIGHT) == DRAG_RIGHT) {
+                mDragEdges.put(DragEdge.Right, null);
+            }
+            mEdgeSwipesOffset[DragEdge.Right.ordinal()] = a.getDimension(R.styleable.SwipeLayout_startEdgeSwipeOffset, 0);
+            mEdgeSwipesOffset[DragEdge.Left.ordinal()] = a.getDimension(R.styleable.SwipeLayout_endEdgeSwipeOffset, 0);
+        }
+
+
+        mEdgeSwipesOffset[DragEdge.Left.ordinal()] = a.getDimension(R.styleable.SwipeLayout_leftEdgeSwipeOffset, mEdgeSwipesOffset[DragEdge.Left.ordinal()]);
+        mEdgeSwipesOffset[DragEdge.Right.ordinal()] = a.getDimension(R.styleable.SwipeLayout_rightEdgeSwipeOffset, mEdgeSwipesOffset[DragEdge.Right.ordinal()]);
+        mEdgeSwipesOffset[DragEdge.Top.ordinal()] = a.getDimension(R.styleable.SwipeLayout_topEdgeSwipeOffset, 0);
+        mEdgeSwipesOffset[DragEdge.Bottom.ordinal()] = a.getDimension(R.styleable.SwipeLayout_bottomEdgeSwipeOffset, 0);
+
+
         int ordinal = a.getInt(R.styleable.SwipeLayout_show_mode, ShowMode.PullOut.ordinal());
         mShowMode = ShowMode.values()[ordinal];
+        mClickToClose = a.getBoolean(R.styleable.SwipeLayout_clickToClose, mClickToClose);
         a.recycle();
 
     }
@@ -723,10 +741,10 @@ public class SwipeLayout extends FrameLayout {
         int gravity = -1;
         switch (dragEdge) {
             case Left:
-                gravity = Gravity.LEFT;
+                gravity = Gravity.START;
                 break;
             case Right:
-                gravity = Gravity.RIGHT;
+                gravity = Gravity.END;
                 break;
             case Top:
                 gravity = Gravity.TOP;
@@ -790,7 +808,7 @@ public class SwipeLayout extends FrameLayout {
         }
     }
 
-    void layoutPullOut() {
+    void layout(ShowMode mode) {
         View surfaceView = getSurfaceView();
         Rect surfaceRect = mViewBoundCache.get(surfaceView);
         if (surfaceRect == null) surfaceRect = computeSurfaceLayoutArea(false);
@@ -801,28 +819,44 @@ public class SwipeLayout extends FrameLayout {
         View currentBottomView = getCurrentBottomView();
         Rect bottomViewRect = mViewBoundCache.get(currentBottomView);
         if (bottomViewRect == null)
-            bottomViewRect = computeBottomLayoutAreaViaSurface(ShowMode.PullOut, surfaceRect);
+            bottomViewRect = computeBottomLayoutAreaViaSurface(mode, surfaceRect);
         if (currentBottomView != null) {
             currentBottomView.layout(bottomViewRect.left, bottomViewRect.top, bottomViewRect.right, bottomViewRect.bottom);
         }
     }
-
-    void layoutLayDown() {
-        View surfaceView = getSurfaceView();
-        Rect surfaceRect = mViewBoundCache.get(surfaceView);
-        if (surfaceRect == null) surfaceRect = computeSurfaceLayoutArea(false);
-        if (surfaceView != null) {
-            surfaceView.layout(surfaceRect.left, surfaceRect.top, surfaceRect.right, surfaceRect.bottom);
-            bringChildToFront(surfaceView);
-        }
-        View currentBottomView = getCurrentBottomView();
-        Rect bottomViewRect = mViewBoundCache.get(currentBottomView);
-        if (bottomViewRect == null)
-            bottomViewRect = computeBottomLayoutAreaViaSurface(ShowMode.LayDown, surfaceRect);
-        if (currentBottomView != null) {
-            currentBottomView.layout(bottomViewRect.left, bottomViewRect.top, bottomViewRect.right, bottomViewRect.bottom);
-        }
-    }
+//    void layoutPullOut() {
+//        View surfaceView = getSurfaceView();
+//        Rect surfaceRect = mViewBoundCache.get(surfaceView);
+//        if (surfaceRect == null) surfaceRect = computeSurfaceLayoutArea(false);
+//        if (surfaceView != null) {
+//            surfaceView.layout(surfaceRect.left, surfaceRect.top, surfaceRect.right, surfaceRect.bottom);
+//            bringChildToFront(surfaceView);
+//        }
+//        View currentBottomView = getCurrentBottomView();
+//        Rect bottomViewRect = mViewBoundCache.get(currentBottomView);
+//        if (bottomViewRect == null)
+//            bottomViewRect = computeBottomLayoutAreaViaSurface(ShowMode.PullOut, surfaceRect);
+//        if (currentBottomView != null) {
+//            currentBottomView.layout(bottomViewRect.left, bottomViewRect.top, bottomViewRect.right, bottomViewRect.bottom);
+//        }
+//    }
+//
+//    void layoutLayDown() {
+//        View surfaceView = getSurfaceView();
+//        Rect surfaceRect = mViewBoundCache.get(surfaceView);
+//        if (surfaceRect == null) surfaceRect = computeSurfaceLayoutArea(false);
+//        if (surfaceView != null) {
+//            surfaceView.layout(surfaceRect.left, surfaceRect.top, surfaceRect.right, surfaceRect.bottom);
+//            bringChildToFront(surfaceView);
+//        }
+//        View currentBottomView = getCurrentBottomView();
+//        Rect bottomViewRect = mViewBoundCache.get(currentBottomView);
+//        if (bottomViewRect == null)
+//            bottomViewRect = computeBottomLayoutAreaViaSurface(ShowMode.LayDown, surfaceRect);
+//        if (currentBottomView != null) {
+//            currentBottomView.layout(bottomViewRect.left, bottomViewRect.top, bottomViewRect.right, bottomViewRect.bottom);
+//        }
+//    }
 
     private boolean mIsBeingDragged;
 
@@ -1590,11 +1624,12 @@ public class SwipeLayout extends FrameLayout {
             }
         }
 
-        if (mShowMode == ShowMode.PullOut) {
-            layoutPullOut();
-        } else if (mShowMode == ShowMode.LayDown) {
-            layoutLayDown();
-        }
+        layout(mShowMode);
+//        if (mShowMode == ShowMode.PullOut) {
+//            layoutPullOut();
+//        } else if (mShowMode == ShowMode.LayDown) {
+//            layoutLayDown();
+//        }
 
         safeBottomView();
     }
