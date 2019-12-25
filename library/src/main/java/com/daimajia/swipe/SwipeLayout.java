@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -18,6 +19,8 @@ import android.widget.AdapterView;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.customview.widget.ViewDragHelper;
@@ -93,24 +96,30 @@ public class SwipeLayout extends FrameLayout {
 
         if ((dragEdgeChoices & DRAG_TOP) == DRAG_TOP) {
             mDragEdges.put(DragEdge.Top, null);
+            mCurrentDragEdge = DragEdge.Top;
         } else if ((dragEdgeChoices & DRAG_BOTTOM) == DRAG_BOTTOM) {
             mDragEdges.put(DragEdge.Bottom, null);
+            mCurrentDragEdge = DragEdge.Bottom;
         }
         if (ViewCompat.getLayoutDirection(this) == ViewCompat.LAYOUT_DIRECTION_LTR) {
             if ((dragEdgeChoices & DRAG_START) == DRAG_START || (dragEdgeChoices & DRAG_LEFT) == DRAG_LEFT) {
                 mDragEdges.put(DragEdge.Left, null);
+                mCurrentDragEdge = DragEdge.Left;
             }
             if ((dragEdgeChoices & DRAG_END) == DRAG_END || (dragEdgeChoices & DRAG_RIGHT) == DRAG_RIGHT) {
                 mDragEdges.put(DragEdge.Right, null);
+                mCurrentDragEdge = DragEdge.Right;
             }
             mEdgeSwipesOffset[DragEdge.Left.ordinal()] = a.getDimension(R.styleable.SwipeLayout_startEdgeSwipeOffset, 0);
             mEdgeSwipesOffset[DragEdge.Right.ordinal()] = a.getDimension(R.styleable.SwipeLayout_endEdgeSwipeOffset, 0);
         } else {
             if ((dragEdgeChoices & DRAG_END) == DRAG_END || (dragEdgeChoices & DRAG_LEFT) == DRAG_LEFT) {
                 mDragEdges.put(DragEdge.Left, null);
+                mCurrentDragEdge = DragEdge.Left;
             }
             if ((dragEdgeChoices & DRAG_START) == DRAG_START || (dragEdgeChoices & DRAG_RIGHT) == DRAG_RIGHT) {
                 mDragEdges.put(DragEdge.Right, null);
+                mCurrentDragEdge = DragEdge.Right;
             }
             mEdgeSwipesOffset[DragEdge.Right.ordinal()] = a.getDimension(R.styleable.SwipeLayout_startEdgeSwipeOffset, 0);
             mEdgeSwipesOffset[DragEdge.Left.ordinal()] = a.getDimension(R.styleable.SwipeLayout_endEdgeSwipeOffset, 0);
@@ -763,33 +772,42 @@ public class SwipeLayout extends FrameLayout {
     public void addView(View child, int index, ViewGroup.LayoutParams params) {
         if (child == null) return;
         int gravity = Gravity.NO_GRAVITY;
-        try {
-            gravity = (Integer) params.getClass().getField("gravity").get(params);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (gravity > 0) {
-            gravity = GravityCompat.getAbsoluteGravity(gravity, ViewCompat.getLayoutDirection(this));
-
-            if ((gravity & Gravity.LEFT) == Gravity.LEFT) {
-                mDragEdges.put(DragEdge.Left, child);
-            }
-            if ((gravity & Gravity.RIGHT) == Gravity.RIGHT) {
-                mDragEdges.put(DragEdge.Right, child);
-            }
-            if ((gravity & Gravity.TOP) == Gravity.TOP) {
-                mDragEdges.put(DragEdge.Top, child);
-            }
-            if ((gravity & Gravity.BOTTOM) == Gravity.BOTTOM) {
-                mDragEdges.put(DragEdge.Bottom, child);
-            }
+        boolean isContent = false;
+        if (params instanceof LayoutParams) {
+            gravity = ((LayoutParams) params).gravity;
+            isContent = ((LayoutParams) params).isContent;
+        } else if (params instanceof FrameLayout.LayoutParams) {
+            gravity = ((FrameLayout.LayoutParams) params).gravity;
         } else {
-            for (Map.Entry<DragEdge, View> entry : mDragEdges.entrySet()) {
-                if (entry.getValue() == null) {
-                    //means used the drag_edge attr, the no gravity child should be use set
-                    mDragEdges.put(entry.getKey(), child);
-                    break;
+            try {
+                gravity = (Integer) params.getClass().getField("gravity").get(params);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (!isContent) {
+            if (gravity > 0) {
+                gravity = GravityCompat.getAbsoluteGravity(gravity, ViewCompat.getLayoutDirection(this));
+
+                if ((gravity & Gravity.LEFT) == Gravity.LEFT) {
+                    mDragEdges.put(DragEdge.Left, child);
+                }
+                if ((gravity & Gravity.RIGHT) == Gravity.RIGHT) {
+                    mDragEdges.put(DragEdge.Right, child);
+                }
+                if ((gravity & Gravity.TOP) == Gravity.TOP) {
+                    mDragEdges.put(DragEdge.Top, child);
+                }
+                if ((gravity & Gravity.BOTTOM) == Gravity.BOTTOM) {
+                    mDragEdges.put(DragEdge.Bottom, child);
+                }
+            } else {
+                for (Map.Entry<DragEdge, View> entry : mDragEdges.entrySet()) {
+                    if (entry.getValue() == null) {
+                        //means used the drag_edge attr, the no gravity child should be use set
+                        mDragEdges.put(entry.getKey(), child);
+                        break;
+                    }
                 }
             }
         }
@@ -797,6 +815,25 @@ public class SwipeLayout extends FrameLayout {
             return;
         }
         super.addView(child, index, params);
+    }
+
+    protected boolean checkLayoutParams(android.view.ViewGroup.LayoutParams p) {
+        return p instanceof LayoutParams;
+    }
+
+    @Override
+    protected LayoutParams generateDefaultLayoutParams() {
+        return new LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+    }
+
+    @Override
+    protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams lp) {
+        return new LayoutParams(lp);
+    }
+
+    @Override
+    public LayoutParams generateLayoutParams(AttributeSet attrs) {
+        return new LayoutParams(getContext(), attrs);
     }
 
     @Override
@@ -1298,6 +1335,27 @@ public class SwipeLayout extends FrameLayout {
      */
     public View getSurfaceView() {
         if (getChildCount() == 0) return null;
+        for (int i = 0; i < getChildCount(); i++) {
+            View childAt = getChildAt(i);
+            LayoutParams layoutParams = (LayoutParams) childAt.getLayoutParams();
+            if (layoutParams.isContent) {
+                return childAt;
+            }
+        }
+
+        //如果没有设定isContent，第一个不再mDragEdges里的是主体
+        for (int i = 0; i < getChildCount(); i++) {
+            View childAt = getChildAt(i);
+            for (DragEdge value : DragEdge.values()) {
+                View view = mDragEdges.get(value);
+                if (childAt != view && view != null) {
+                    return childAt;
+                }
+            }
+        }
+
+
+        //没有设定isContent，也没有设置drag， 则默认最后一个是主体
         return getChildAt(getChildCount() - 1);
     }
 
@@ -1632,5 +1690,56 @@ public class SwipeLayout extends FrameLayout {
 //        }
 
         safeBottomView();
+    }
+
+    public static class LayoutParams extends FrameLayout.LayoutParams {
+        private boolean isContent = false;
+
+        public LayoutParams(@NonNull Context c, @Nullable AttributeSet attrs) {
+            super(c, attrs);
+
+            final TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.SwipeLayout_Layout);
+            isContent = a.getBoolean(R.styleable.SwipeLayout_Layout_isContent, false);
+            a.recycle();
+        }
+
+        public LayoutParams(int width, int height) {
+            super(width, height);
+        }
+
+        /**
+         * Creates a new set of layout parameters with the specified width, height
+         * and weight.
+         *
+         * @param width   the width, either {@link #MATCH_PARENT},
+         *                {@link #WRAP_CONTENT} or a fixed size in pixels
+         * @param height  the height, either {@link #MATCH_PARENT},
+         *                {@link #WRAP_CONTENT} or a fixed size in pixels
+         * @param gravity the gravity
+         * @see android.view.Gravity
+         */
+        public LayoutParams(int width, int height, int gravity) {
+            super(width, height);
+        }
+
+        public LayoutParams(@NonNull ViewGroup.LayoutParams source) {
+            super(source);
+        }
+
+        public LayoutParams(@NonNull ViewGroup.MarginLayoutParams source) {
+            super(source);
+        }
+
+        /**
+         * Copy constructor. Clones the width, height, margin values, and
+         * gravity of the source.
+         *
+         * @param source The layout params to copy from.
+         */
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        public LayoutParams(@NonNull LayoutParams source) {
+            super(source);
+            isContent = source.isContent;
+        }
     }
 }

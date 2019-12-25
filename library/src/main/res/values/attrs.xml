@@ -21,4 +21,7 @@
         </attr>
         <attr name="clickToClose" format="boolean" />
     </declare-styleable>
+    <declare-styleable name="SwipeLayout_Layout">
+        <attr name="isContent" format="boolean" />
+    </declare-styleable>
 </resources>

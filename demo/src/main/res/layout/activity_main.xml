@@ -1,26 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
     <com.daimajia.swipe.SwipeLayout
         android:layout_width="match_parent"
-        app:drag_edge="start"
         android:layout_height="120dp">
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="侧栏" />
+            android:layout_height="wrap_content"
+            android:background="@color/dark_gray"
+            android:text="侧栏"
+            app:isContent="true" />
 
         <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="start"
             android:background="@color/red" />
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="end"
+            android:background="#ddffaa" />
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="top"
+            android:background="#dd00dd" />
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="bottom"
+            android:background="#00ddff" />
+
+
     </com.daimajia.swipe.SwipeLayout>
 
 </LinearLayout>
