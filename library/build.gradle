@@ -1,19 +1,28 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
-    buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
+    compileSdkVersion 29
+    buildToolsVersion '29.0.2'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
+        targetSdkVersion 29
+        versionCode 4
+        versionName "1.1.0"
+
+        consumerProguardFiles 'proguard-rules.pro'
+    }
+
+    libraryVariants.all {
+        it.generateBuildConfigProvider.configure { enabled = false }
     }
 }
 
 dependencies {
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+//    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.annotation:annotation:1.1.0'
+    implementation 'androidx.customview:customview:1.0.0'
+//    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 }
 apply from: './gradle-mvn-push.gradle'
 
