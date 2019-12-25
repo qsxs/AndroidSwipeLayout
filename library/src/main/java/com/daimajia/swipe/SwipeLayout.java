@@ -1699,7 +1699,7 @@ public class SwipeLayout extends FrameLayout {
             super(c, attrs);
 
             final TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.SwipeLayout_Layout);
-            isContent = a.getBoolean(R.styleable.SwipeLayout_Layout_isContent, false);
+            isContent = a.getBoolean(R.styleable.SwipeLayout_Layout_layout_isContent, false);
             a.recycle();
         }
 

@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:background="@color/dark_gray"
             android:text="侧栏"
-            app:isContent="true" />
+            app:layout_isContent="true" />
 
         <ImageView
             android:layout_width="80dp"
